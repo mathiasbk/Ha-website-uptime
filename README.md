@@ -1,3 +1,2 @@
 # ha-website-uptime for Home Assistant
-
-## Installation
+Testing Home Assistant extension devlopment with python. Currently NOT working.
