@@ -15,7 +15,8 @@ DOMAIN = "hauptime"
 def setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up a skeleton component."""
     # States are in the format DOMAIN.OBJECT_ID.
-    hass.states.set('hauptime.Hello_World', 'Works!')
 
-    # Return boolean to indicate that initialization was successfully.
+    #register the binary_sensor
+    hass.helpers.discovery.load_platform('binary_sensor', DOMAIN, {}, config)
+
     return True
