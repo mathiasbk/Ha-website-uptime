@@ -1,6 +1,0 @@
-force_check:
-  description: Force an immediate check of the website status.
-  fields:
-    url:
-      description: URL to check.
-      example: "http://vg.no"

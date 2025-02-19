@@ -1,0 +1,11 @@
+{
+    "domain": "hauptime",
+    "name": "Home Assistant Website Uptime",
+    "codeowners": [],
+    "dependencies": [],
+    "documentation": "https://github.com/mathiasbk/Ha-website-uptime",
+    "iot_class": "cloud_polling",
+    "requirements": [],
+    "version": "0.1.0",
+    "reload": true
+  }
