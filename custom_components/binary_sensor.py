@@ -1,21 +1,33 @@
 import logging
 import requests
-from homeassistant.components.binary_sensor import BinarySensorEntity
+import voluptuous as vol
+
+from homeassistant import core, config_entries
+from homeassistant.components.binary_sensor import BinarySensorEntity, PLATFORM_SCHEMA
+from homeassistant.const import CONF_HOST
+
+from .const import DOMAIN, FETCHURL
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "hauptime"
-FetchURL = "https://www.google.com"
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_HOST): str,
+})
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    add_entities([SiteUpSensor()])
+async def async_setup_platform(hass, config, add_entities, discovery_info=None):
+    add_entities([SiteUpSensor(config[FETCHURL])])
+
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    async_add_entities([SiteUpSensor(config_entry.data[FETCHURL])])
+
 
 class SiteUpSensor(BinarySensorEntity):
     _attr_name = "Site Up"
     _attr_device_class = "connectivity"
 
-    def __init__(self):
+    def __init__(self, url):
         self._state = False
+        self._url = url
     
     @property
     def name(self):
@@ -27,12 +39,13 @@ class SiteUpSensor(BinarySensorEntity):
 
     def update(self):
         try:
-            response = requests.get(FetchURL)
+            response = requests.get(self._url)
+            _LOGGER.info("Fetching URL: %s", self._url)
+
             if response.status_code == 200:
                 self._state = True
             else:
                 self._state = False
-            self._state = True
         except:
             self._state = False
-            _LOGGER.error("Failed to fetch URL: %s", FetchURL)
+            _LOGGER.error("Failed to fetch URL: %s", self._url)
