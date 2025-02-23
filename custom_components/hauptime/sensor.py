@@ -15,11 +15,11 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): str,
 })
 
-async def async_setup_platform(hass, config, add_entities, discovery_info=None):
-    add_entities([URLSensor(config[FETCHURL])])
+async def async_setup_platform(hass, config_entry, add_entities, discovery_info=None):
+    add_entities([URLSensor(config_entry.data[FETCHURL]), ResponseTimeSensor(config_entry.data[FETCHURL])])
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    async_add_entities([URLSensor(config_entry.data[FETCHURL])], ResponseTimeSensor(config_entry.data[FETCHURL]))
+    async_add_entities([URLSensor(config_entry.data[FETCHURL]), ResponseTimeSensor(config_entry.data[FETCHURL])])
 
 
 class URLSensor(SensorEntity):
@@ -28,7 +28,6 @@ class URLSensor(SensorEntity):
     def __init__(self, url):
         self._state = url
         self._url = url
-        #self.hass.bus.async_listen("update_responsetime", self.update)
     
     @property
     def name(self):
@@ -44,6 +43,7 @@ class ResponseTimeSensor(SensorEntity):
     def __init__(self, url):
         self._state = None
         self._url = url
+        _LOGGER.debug("ResponseTimeSensor initialized with URL: %s", url)
     
     @property
     def name(self):
@@ -53,5 +53,13 @@ class ResponseTimeSensor(SensorEntity):
     def state(self):
         return self._state
     
-    def update(self):
-        return self._state
+    def handle_update(self, value):
+        self._state = value
+        self.hass.async_add_job(self.async_write_ha_state)
+        _LOGGER.debug("ResponseTimeSensor updated with value: %s", value)
+    
+    def async_added_to_hass(self):
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, "update_responsetime", self.handle_update)
+        )
+        _LOGGER.debug("ResponseTimeSensor added to HASS")

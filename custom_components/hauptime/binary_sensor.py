@@ -12,16 +12,16 @@ from .const import DOMAIN, FETCHURL
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(FETCHURL, default="htt.ps://google.com"): str,
+    vol.Required(FETCHURL, default="http://google.com"): str,
 })
 
 async def async_setup_platform(hass, config_entry, async_add_entities, discovery_info=None):
-    url = config_entry.data.get(FETCHURL, config_entry.data.get(CONF_HOST, "http://example.com"))
-    async_add_entities([SiteUpSensor(hass, url)])
+    _LOGGER.debug("Setting up SiteUpSensor with URL: %s", config_entry.data[FETCHURL])
+    async_add_entities([SiteUpSensor(hass, config_entry.data[FETCHURL])])
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    url = config_entry.data.get(FETCHURL, config_entry.data.get(CONF_HOST, "http://example.com"))
-    async_add_entities([SiteUpSensor(hass, url)])
+    _LOGGER.debug("Setting up SiteUpSensor with URL: %s", config_entry.data[FETCHURL])
+    async_add_entities([SiteUpSensor(hass, config_entry.data[FETCHURL])])
     
 
 class SiteUpSensor(BinarySensorEntity):
@@ -41,21 +41,22 @@ class SiteUpSensor(BinarySensorEntity):
     def is_on(self):
         return self._state
 
-    def update(self):
+    async def async_update(self):
         try:
-            response = requests.get(self._url)
+            response = await self.hass.async_add_executor_job(requests.get, self._url)
             _LOGGER.info("Fetching URL: %s", self._url)
             _LOGGER.info("Responsetime in seconds: %s", response.elapsed.total_seconds())
 
-            #Send responsetime to the responsetime sensor
-            #async_dispatcher_send(self.hass, "update_responsetime", response.elapsed.total_seconds())
+            # Send responsetime to the responsetime sensor
+            self.hass.async_add_job(
+                async_dispatcher_send, self.hass, "update_responsetime", response.elapsed.total_seconds()
+            )
 
             if response.status_code == 200:
                 self._state = True
             else:
                 self._state = False
 
-
-        except:
+        except Exception as e:
             self._state = False
-            _LOGGER.error("Failed to fetch URL: %s", self._url)
+            _LOGGER.error("Failed to fetch URL: %s, Error: %s", self._url, str(e))
