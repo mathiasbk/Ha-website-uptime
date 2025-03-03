@@ -6,7 +6,8 @@
     "dependencies": [],
     "documentation": "https://github.com/mathiasbk/Ha-website-uptime",
     "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/mathiasbk/Ha-website-uptime/issues",
     "requirements": [],
-    "version": "0.1.0",
-    "issue_tracker": "https://github.com/mathiasbk/Ha-website-uptime/issues"
+    "version": "0.1.0"
+    
   }
